@@ -1,0 +1,3 @@
+#include "creatures/Warrior.h"
+
+
