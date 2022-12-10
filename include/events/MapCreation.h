@@ -9,7 +9,7 @@ private:
     MapPoint m_MapSize;
 
 public:
-    explicit MapCreationEvent(MapPoint map_size);
+    explicit MapCreationEvent(const MapPoint& map_size);
 
     std::string GetFiringMessage() const override;
 

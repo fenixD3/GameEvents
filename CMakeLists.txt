@@ -13,6 +13,11 @@ else()
     message(FATAL_ERROR "Boost was not found")
 endif()
 
+find_package(Boost
+    COMPONENTS
+        thread
+     REQUIRED)
+
 file(GLOB_RECURSE SRCS src/*.cpp)
 
 add_executable(${PROJECT_NAME}
@@ -21,4 +26,9 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         include
-        ${Boost_INCLUDE_DIRS})
+        ${Boost_INCLUDE_DIRS}
+        )
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+        Boost::thread
+        )

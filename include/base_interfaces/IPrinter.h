@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-class IPrinter : public std::enable_shared_from_this<IPrinter>
+class IPrinter
 {
 public:
     virtual ~IPrinter() = default;

@@ -2,7 +2,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-MarchEvent::MarchEvent(int creature_Id, MapPoint coordinates)
+MarchEvent::MarchEvent(int creature_Id, const MapPoint& coordinates)
     : m_CreatureId(creature_Id)
     , m_Coordinates(coordinates)
 {}

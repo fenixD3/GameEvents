@@ -10,7 +10,7 @@ private:
     int m_Power;
 
 public:
-    SpawnCreatureEvent(int creature_Id, MapPoint coordinates, int power);
+    explicit SpawnCreatureEvent(int creature_Id, const MapPoint& coordinates, int power);
 
     std::string GetFiringMessage() const override;
     std::string GetFinishingMessage() const override;

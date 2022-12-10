@@ -29,7 +29,7 @@ public:
     }
 };
 
-GameMap::GameMap(MapPoint map_size, const Key<GameMapFactory>&)
+GameMap::GameMap(const MapPoint& map_size, const Key<GameMapFactory>&)
     : m_MapSize(map_size)
     , m_Work(std::make_unique<dummy_game_work_type>(m_GameContext.get_executor()))
 {
@@ -45,7 +45,7 @@ GameMap::~GameMap()
     m_GameThread.join();
 }
 
-bool GameMap::Include(const MapPoint point) const
+bool GameMap::Include(const MapPoint& point) const
 {
     return point.GetXCoord() > 0 && point.GetYCoord() > 0 && point.GetXCoord() <= m_MapSize.GetXCoord() && point.GetYCoord() <= m_MapSize.GetYCoord();
 }

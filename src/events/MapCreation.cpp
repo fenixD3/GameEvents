@@ -1,6 +1,6 @@
 #include "events/MapCreation.h"
 
-MapCreationEvent::MapCreationEvent(MapPoint map_size)
+MapCreationEvent::MapCreationEvent(const MapPoint& map_size)
     : m_MapSize(map_size)
 {}
 

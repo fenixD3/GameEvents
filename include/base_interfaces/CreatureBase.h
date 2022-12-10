@@ -11,7 +11,7 @@ private:
     MapPoint m_Position;
 
 public:
-    CreatureBase(int id, MapPoint coordinates);
+    explicit CreatureBase(int id, const MapPoint& coordinates);
     virtual ~CreatureBase() = default;
 
     int GetId() const;

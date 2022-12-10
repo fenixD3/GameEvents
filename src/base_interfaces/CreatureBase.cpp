@@ -1,6 +1,6 @@
 #include "base_interfaces/CreatureBase.h"
 
-CreatureBase::CreatureBase(int id, MapPoint coordinates)
+CreatureBase::CreatureBase(int id, const MapPoint& coordinates)
         : m_Id(id)
         , m_Position(coordinates)
 {}

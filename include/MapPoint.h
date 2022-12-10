@@ -20,17 +20,12 @@ public:
 
     operator std::string() const;
 
-    friend bool operator==(const MapPoint lhs, const MapPoint rhs);
-    friend bool operator!=(const MapPoint lhs, const MapPoint rhs);
-//    friend bool operator<(const MapPoint lhs, const MapPoint rhs);
-//    friend bool operator>(const MapPoint lhs, const MapPoint rhs);
-//    friend bool operator<=(const MapPoint lhs, const MapPoint rhs);
-//    friend bool operator>=(const MapPoint lhs, const MapPoint rhs);
-
-    friend std::ostream& operator<<(std::ostream& out, const MapPoint point);
+    friend bool operator==(const MapPoint& lhs, const MapPoint& rhs);
+    friend bool operator!=(const MapPoint& lhs, const MapPoint& rhs);
+    friend std::ostream& operator<<(std::ostream& out, const MapPoint& point);
 };
 
 struct MapPointHasher
 {
-    size_t operator()(const MapPoint point) const;
+    size_t operator()(const MapPoint& point) const;
 };

@@ -45,9 +45,9 @@ void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 {
     {
         std::lock_guard guard(m_Locker);
-        event->SetPrintingCallback([this, printer = m_InfoPrinter->shared_from_this()] (auto&& message)
+        event->SetPrintingCallback([this](auto&& message)
             {
-                return printer->Print(m_GameTicks, std::forward<decltype(message)>(message));
+                return m_InfoPrinter->Print(m_GameTicks, std::forward<decltype(message)>(message));
             });
         m_EventStorage.push(std::move(event));
     }

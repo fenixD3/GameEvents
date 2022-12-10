@@ -18,6 +18,7 @@ class EventBus /*: public std::enable_shared_from_this<EventBus>*/
 
 private:
     double m_GameTicks;
+
     std::thread m_Worker;
     std::mutex m_Locker;
     std::condition_variable m_NewEvent;

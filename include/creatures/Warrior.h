@@ -8,7 +8,7 @@ private:
     int m_Power;
 
 public:
-    Warrior(int id, MapPoint coordinates, int power);
+    explicit Warrior(int id, const MapPoint& coordinates, int power);
 
     bool BattleWith(const Warrior& enemy) const override;
 };

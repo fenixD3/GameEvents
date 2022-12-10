@@ -53,17 +53,16 @@ private:
     std::unique_ptr<dummy_game_work_type> m_Work;
     std::thread m_GameThread;
 
-//    static inline MapPoint StartCoord{0, 0};
     MapPoint m_MapSize;
     creature_container m_Creatures;
 
     std::priority_queue<March, std::vector<March>, std::greater<>> m_PendingMarches;
 
 public:
-    explicit GameMap(MapPoint map_size, const Key<GameMapFactory>&);
+    explicit GameMap(const MapPoint& map_size, const Key<GameMapFactory>&);
     ~GameMap();
 
-    bool Include(const MapPoint point) const;
+    bool Include(const MapPoint& point) const;
     std::pair<bool, std::string> AddCreature(std::shared_ptr<CreatureBase>&& creature);
     void ProcessEvent(std::shared_ptr<MarchEvent> event);
     void ProcessEvent(std::shared_ptr<WaitEvent> event)

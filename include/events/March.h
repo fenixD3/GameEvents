@@ -9,7 +9,7 @@ private:
     MapPoint m_Coordinates;
 
 public:
-    MarchEvent(int creature_Id, MapPoint coordinates);
+    explicit MarchEvent(int creature_Id, const MapPoint& coordinates);
 
     std::string GetFiringMessage() const override;
     std::string GetFinishingMessage() const override;

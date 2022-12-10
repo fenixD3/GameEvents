@@ -1,6 +1,6 @@
 #include "creatures/Warrior.h"
 
-Warrior::Warrior(int id, MapPoint coordinates, int power)
+Warrior::Warrior(int id, const MapPoint& coordinates, int power)
     : BattleDispatcher(id, coordinates)
     , m_Power(power)
 {}

@@ -1,6 +1,6 @@
 #include "events/SpawnCreature.h"
 
-SpawnCreatureEvent::SpawnCreatureEvent(int creature_Id, MapPoint coordinates, int power)
+SpawnCreatureEvent::SpawnCreatureEvent(int creature_Id, const MapPoint& coordinates, int power)
     : m_CreatureId(creature_Id)
     , m_Coordinates(coordinates)
     , m_Power(power)
