@@ -1,9 +1,9 @@
 #pragma once
 
-#include "interfaces/IEvent.h"
+#include "base_interfaces/EventBase.h"
 #include "MapPoint.h"
 
-class MapCreationEvent : public IEvent
+class MapCreationEvent : public EventBase
 {
 private:
     MapPoint m_MapSize;

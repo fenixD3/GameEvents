@@ -11,10 +11,10 @@ double WaitEvent::GetTicks() const
 
 std::string WaitEvent::GetFiringMessage() const
 {
-    return IEvent::GetFiringMessage();
+    return EventBase::GetFiringMessage();
 }
 
 std::string WaitEvent::GetFinishingMessage() const
 {
-    return IEvent::GetFinishingMessage();
+    return EventBase::GetFinishingMessage();
 }

@@ -2,7 +2,7 @@
 
 std::string FinishEvent::GetFiringMessage() const
 {
-    return IEvent::GetFiringMessage();
+    return EventBase::GetFiringMessage();
 }
 
 std::string FinishEvent::GetFinishingMessage() const

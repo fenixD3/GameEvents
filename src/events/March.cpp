@@ -18,3 +18,13 @@ std::string MarchEvent::GetFinishingMessage() const
     using namespace std::string_literals;
     return "MARCH "s + boost::lexical_cast<std::string>(m_CreatureId) + " FINISHED " + boost::lexical_cast<std::string>(m_Coordinates);
 }
+
+int MarchEvent::GetCreatureId() const
+{
+    return m_CreatureId;
+}
+
+MapPoint MarchEvent::GetMarchDestination() const
+{
+    return m_Coordinates;
+}

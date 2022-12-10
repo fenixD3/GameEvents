@@ -13,7 +13,7 @@ else()
     message(FATAL_ERROR "Boost was not found")
 endif()
 
-file(GLOB SRCS src/*.cpp src/events/*.cpp src/creatures/*.cpp)
+file(GLOB_RECURSE SRCS src/*.cpp)
 
 add_executable(${PROJECT_NAME}
         ${SRCS}

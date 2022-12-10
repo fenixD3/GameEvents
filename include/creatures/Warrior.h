@@ -1,11 +1,14 @@
 #pragma once
 
-#include "interfaces/ICreature.h"
-#include "MapPoint.h"
+#include "base_interfaces/CreatureBase.h"
 
-class Warrior
+class Warrior : public BattleDispatcher<Warrior>
 {
-public:
-    MapPoint m_Position;
+private:
     int m_Power;
+
+public:
+    Warrior(int id, MapPoint coordinates, int power);
+
+    bool BattleWith(const Warrior& enemy) const override;
 };

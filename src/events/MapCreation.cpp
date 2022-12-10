@@ -21,7 +21,7 @@ MapPoint MapCreationEvent::GetMapSize() const
 
 std::string MapCreationEvent::GetFiringMessage() const
 {
-    return IEvent::GetFiringMessage();
+    return EventBase::GetFiringMessage();
 }
 
 std::string MapCreationEvent::GetFinishingMessage() const

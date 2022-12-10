@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interfaces/IExtractor.h"
+#include "base_interfaces/IExtractor.h"
 #include "EventFactory.h"
 
 #include <memory>
@@ -13,7 +13,7 @@ private:
 public:
     explicit EventProducer(std::unique_ptr<IExtractor> event_extractor_impl);
 
-    void Run(const std::function<void(std::shared_ptr<IEvent>&&)>& dispatch_callback) const;
+    void Run(const std::function<void(std::shared_ptr<EventBase>&&)>& dispatch_callback) const;
 
 //private:
 //    void DispatchEvent(const std::shared_ptr<IEvent>& event) const;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interfaces/IPrinter.h"
+#include "base_interfaces/IPrinter.h"
 
 class StdOutPrinter : public IPrinter
 {

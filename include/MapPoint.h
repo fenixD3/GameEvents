@@ -16,8 +16,21 @@ public:
 
     int GetXCoord() const;
     int GetYCoord() const;
+    double LengthTo(MapPoint dest) const;
 
     operator std::string() const;
 
-    friend std::ostream& operator<<(std::ostream& out, const MapPoint& point);
+    friend bool operator==(const MapPoint lhs, const MapPoint rhs);
+    friend bool operator!=(const MapPoint lhs, const MapPoint rhs);
+//    friend bool operator<(const MapPoint lhs, const MapPoint rhs);
+//    friend bool operator>(const MapPoint lhs, const MapPoint rhs);
+//    friend bool operator<=(const MapPoint lhs, const MapPoint rhs);
+//    friend bool operator>=(const MapPoint lhs, const MapPoint rhs);
+
+    friend std::ostream& operator<<(std::ostream& out, const MapPoint point);
+};
+
+struct MapPointHasher
+{
+    size_t operator()(const MapPoint point) const;
 };

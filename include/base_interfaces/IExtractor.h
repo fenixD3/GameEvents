@@ -4,24 +4,6 @@
 #include <string>
 #include <optional>
 
-//class ITokenStorage
-//{
-//public:
-//    virtual ~ITokenStorage() = default;
-//};
-//
-//template <typename... TArgs>
-//class Token : public ITokenStorage
-//{
-//private:
-//    std::tuple<TArgs...> m_Tokens;
-//
-//    template <typename... UArgs>
-//    Token(UArgs&&... args)
-//        : m_Tokens(std::forward<UArgs>(args)...)
-//    {}
-//};
-
 class IExtractor
 {
 public:

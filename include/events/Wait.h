@@ -1,8 +1,8 @@
 #pragma once
 
-#include "interfaces/IEvent.h"
+#include "base_interfaces/EventBase.h"
 
-class WaitEvent : public IEvent
+class WaitEvent : public EventBase
 {
 private:
     double m_Ticks;
@@ -11,7 +11,6 @@ public:
     WaitEvent(double ticks);
 
     std::string GetFiringMessage() const override;
-
     std::string GetFinishingMessage() const override;
 
     double GetTicks() const;

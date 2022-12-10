@@ -1,4 +1,4 @@
-#include "interfaces/IExtractor.h"
+#include "base_interfaces/IExtractor.h"
 
 #include <fstream>
 #include <string_view>

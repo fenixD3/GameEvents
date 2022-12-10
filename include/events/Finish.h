@@ -1,8 +1,8 @@
 #pragma once
 
-#include "interfaces/IEvent.h"
+#include "base_interfaces/EventBase.h"
 
-class FinishEvent : public IEvent
+class FinishEvent : public EventBase
 {
 public:
     std::string GetFiringMessage() const override;

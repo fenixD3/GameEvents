@@ -6,11 +6,11 @@ EventBus::EventBus(std::unique_ptr<IPrinter> printer_impl)
     : m_GameTicks(0.0)
     , m_InfoPrinter(std::move(printer_impl))
 {
-    m_Worker = std::thread([this] /// Firing event
+    m_Worker = std::thread([this] () /// Firing event
     {
         while (true)
         {
-            std::shared_ptr<IEvent> event;
+            std::shared_ptr<EventBase> event;
             {
                 std::unique_lock guard(m_Locker);
                 m_NewEvent.wait(guard, [this]{ return !m_EventStorage.empty(); });
@@ -41,13 +41,21 @@ EventBus::~EventBus()
     m_Worker.join();
 }
 
-void EventBus::AddEvent(std::shared_ptr<IEvent>&& event)
+void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 {
-//    std::string firing_msg = event->GetFiringMessage(); // TODO here ??
     {
         std::lock_guard guard(m_Locker);
+        event->SetPrintingCallback([this, printer = m_InfoPrinter->shared_from_this()] (auto&& message)
+            {
+                return printer->Print(m_GameTicks, std::forward<decltype(message)>(message));
+            });
         m_EventStorage.push(std::move(event));
     }
-//    m_InfoPrinter->Print(m_GameTicks, std::move(firing_msg)); // TODO here ??
     m_NewEvent.notify_one();
+}
+
+void EventBus::ProcessEvent(std::shared_ptr<WaitEvent> event)
+{
+    std::cout << "Wait\n";
+    m_GameTicks += event->GetTicks();
 }
