@@ -38,6 +38,7 @@ int main(int ac, char **av)
 //            bus->ProcessEvent(std::forward<decltype(event)>(event));
 //        });
     bus->SubscribeSelf<WaitEvent>(); // todo it works without shared_from_this!
+    bus->SubscribeSelf<FinishEvent>();
 
     // TODO core logic below!!!
     try

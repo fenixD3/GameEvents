@@ -4,6 +4,7 @@
 
 EventBus::EventBus(std::unique_ptr<IPrinter> printer_impl)
     : m_GameTicks(0.0)
+    , m_Suspend(false)
     , m_InfoPrinter(std::move(printer_impl))
 {
     m_Worker = std::thread([this] () /// Firing event
@@ -13,7 +14,12 @@ EventBus::EventBus(std::unique_ptr<IPrinter> printer_impl)
             std::shared_ptr<EventBase> event;
             {
                 std::unique_lock guard(m_Locker);
-                m_NewEvent.wait(guard, [this]{ return !m_EventStorage.empty(); });
+                m_NewEvent.wait(guard, [this]{ return m_Suspend || !m_EventStorage.empty(); });
+                if (m_Suspend && m_EventStorage.empty())
+                {
+                    break;
+                }
+
                 event = std::move(m_EventStorage.front());
                 m_EventStorage.pop();
             }
@@ -28,10 +34,6 @@ EventBus::EventBus(std::unique_ptr<IPrinter> printer_impl)
                 std::cerr << ex.what() << std::endl;
                 std::exit(EXIT_FAILURE);
             }
-
-            // TODO delete test logic!
-            if (m_EventStorage.empty())
-                break;
         }
     });
 }
@@ -45,9 +47,9 @@ void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 {
     {
         std::lock_guard guard(m_Locker);
-        event->SetPrintingCallback([this](auto&& message)
+        event->SetPrintingCallback([this](auto&& message) // todo shared_from_this ??
             {
-                return m_InfoPrinter->Print(m_GameTicks, std::forward<decltype(message)>(message));
+                return m_InfoPrinter->SafetyPrint(m_GameTicks, std::forward<decltype(message)>(message));
             });
         m_EventStorage.push(std::move(event));
     }
@@ -57,5 +59,15 @@ void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 void EventBus::ProcessEvent(std::shared_ptr<WaitEvent> event)
 {
     std::cout << "Wait\n";
-    m_GameTicks += event->GetTicks();
+    for (double g = m_GameTicks; !m_GameTicks.compare_exchange_strong(g, g + 1.0);) {}
+    //    m_GameTicks += event->GetTicks();
+}
+
+void EventBus::ProcessEvent(std::shared_ptr<FinishEvent> event)
+{
+    {
+        std::lock_guard guard(m_Locker);
+        m_Suspend = true;
+    }
+    m_NewEvent.notify_one();
 }

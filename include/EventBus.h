@@ -3,25 +3,29 @@
 #include "base_interfaces/EventBase.h"
 #include "base_interfaces/IPrinter.h"
 #include "events/Wait.h"
+#include "events/Finish.h"
 
 #include <boost/signals2.hpp>
 #include <queue>
 #include <memory>
 #include <unordered_map>
+#include <typeindex>
 
 #include <thread>
 #include <condition_variable>
+#include <atomic>
 
-class EventBus /*: public std::enable_shared_from_this<EventBus>*/
+class EventBus : public std::enable_shared_from_this<EventBus>
 {
     using handlers = boost::signals2::signal<void(std::shared_ptr<EventBase>)>;
 
 private:
-    double m_GameTicks;
+    std::atomic<double> m_GameTicks;
 
     std::thread m_Worker;
     std::mutex m_Locker;
     std::condition_variable m_NewEvent;
+    bool m_Suspend;
     std::queue<std::shared_ptr<EventBase>> m_EventStorage;
 
     std::unordered_map<std::type_index, handlers> m_Subscribers;
@@ -65,4 +69,5 @@ public:
 
     void AddEvent(std::shared_ptr<EventBase>&& event);
     void ProcessEvent(std::shared_ptr<WaitEvent> event);
+    void ProcessEvent(std::shared_ptr<FinishEvent> event);
 };

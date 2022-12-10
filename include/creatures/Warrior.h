@@ -10,5 +10,5 @@ private:
 public:
     explicit Warrior(int id, const MapPoint& coordinates, int power);
 
-    bool BattleWith(const Warrior& enemy) const override;
+    BattleInfo BattleWith(const Warrior& enemy) const override;
 };

@@ -1,7 +1,7 @@
 #include "FileExtractor.h"
 
 FileExtractor::FileExtractor(std::string_view file_path)
-    : m_File(file_path)
+    : m_File(file_path.data())
 {
     using namespace std::string_literals;
 

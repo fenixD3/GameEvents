@@ -9,6 +9,7 @@
 #include <memory>
 #include <thread>
 #include <queue>
+#include <mutex>
 
 #include <iostream>
 
@@ -46,7 +47,8 @@ private:
         >
     >;
 
-    class March;
+    template <typename TEvent>
+    class MarchDecorator;
 
 private:
     game_context_type m_GameContext;
@@ -54,9 +56,11 @@ private:
     std::thread m_GameThread;
 
     MapPoint m_MapSize;
+    std::mutex m_CreaturesLocker;
     creature_container m_Creatures;
 
-    std::priority_queue<March, std::vector<March>, std::greater<>> m_PendingMarches;
+    std::mutex m_MarchLocker;
+    std::priority_queue<MarchDecorator<MarchEvent>, std::vector<MarchDecorator<MarchEvent>>, std::greater<>> m_PendingMarches;
 
 public:
     explicit GameMap(const MapPoint& map_size, const Key<GameMapFactory>&);
@@ -65,8 +69,9 @@ public:
     bool Include(const MapPoint& point) const;
     std::pair<bool, std::string> AddCreature(std::shared_ptr<CreatureBase>&& creature);
     void ProcessEvent(std::shared_ptr<MarchEvent> event);
-    void ProcessEvent(std::shared_ptr<WaitEvent> event)
-    {
-        std::cout << "Wait\n";
-    }
+
+private:
+    void ProcessBattleInfo(const BattleInfo& battle,
+                           creature_container::index<IdTag>::type::iterator assaulter,
+                           creature_container::index<PositionTag>::type::iterator defender);
 };

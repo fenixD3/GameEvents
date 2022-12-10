@@ -1,8 +1,33 @@
 #pragma once
 
+#include <memory>
+#include <optional>
+
 #include "MapPoint.h"
 
 class Warrior;
+
+class BattleInfo
+{
+private:
+    int m_Assaulter;
+    int m_Defender;
+    std::optional<int> m_Winner;
+
+public:
+    BattleInfo() = default;
+
+    int GetAssaulter() const;
+    int GetDefender() const;
+    const std::optional<int>& GetWinner() const;
+
+    void SetAssaulter(int assaulter);
+    void SetDefender(int defender);
+    void SetWinner(int winner);
+
+    friend std::ostream& operator<<(std::ostream& out, const BattleInfo& battle);
+    friend std::ostream& operator<<(std::ostream& out, const std::optional<BattleInfo>& battle);
+};
 
 class CreatureBase
 {
@@ -16,9 +41,10 @@ public:
 
     int GetId() const;
     MapPoint GetPosition() const;
+    void SetPosition(const MapPoint& new_position);
 
-    virtual bool Battle(const std::shared_ptr<CreatureBase>& assaulter) const = 0;
-    virtual bool BattleWith(const Warrior& enemy) const = 0;
+    virtual BattleInfo Battle(const std::shared_ptr<CreatureBase>& assaulter) const = 0;
+    virtual BattleInfo BattleWith(const Warrior& enemy) const = 0;
 };
 
 template <typename TCreature>
@@ -26,7 +52,7 @@ class BattleDispatcher : public CreatureBase
 {
     using CreatureBase::CreatureBase;
 
-    bool Battle(const std::shared_ptr<CreatureBase>& assaulter) const override
+    BattleInfo Battle(const std::shared_ptr<CreatureBase>& assaulter) const override
     {
         return assaulter->BattleWith(static_cast<const TCreature&>(*this));
     }

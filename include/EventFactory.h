@@ -2,6 +2,7 @@
 
 #include "base_interfaces/EventBase.h"
 
+#include <memory>
 #include <variant>
 #include <unordered_map>
 #include <string_view>

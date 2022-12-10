@@ -3,29 +3,49 @@
 
 #include <boost/asio/post.hpp>
 
-class GameMap::March
+template <typename TEvent>
+class GameMap::MarchDecorator : public TEvent
 {
 private:
     double m_MarchTicks;
-    MapPoint m_Destination;
+    std::optional<BattleInfo> m_Battle;
 
     size_t m_MarchCount;
 
 public:
-    March(double ticks, MapPoint dest, size_t count)
-        : m_MarchTicks(ticks)
-        , m_Destination(dest)
+    MarchDecorator() = default;
+
+    template <typename... TArgs>
+    MarchDecorator(size_t count, const MapPoint& creature_position, TArgs&&... args)
+        : TEvent(std::forward<TArgs>(args)...)
         , m_MarchCount(count)
-    {}
+    {
+        m_MarchTicks = creature_position.LengthTo(GetDestination());
+    }
 
     MapPoint GetDestination() const
     {
-        return m_Destination;
+        return TEvent::GetDestination();
     }
 
-    friend bool operator>(const March& lhs, const March& rhs)
+    std::string GetFinishingMessage() const override
     {
-        return std::isgreater(lhs.m_MarchTicks, rhs.m_MarchTicks);
+        return TEvent::GetFinishingMessage() + ' ' + boost::lexical_cast<std::string>(m_Battle);
+    }
+
+    void SetBattle(const BattleInfo& battle)
+    {
+        m_Battle = battle;
+    }
+
+    const std::optional<BattleInfo>& GetBattleInfo() const
+    {
+        return m_Battle;
+    }
+
+    friend bool operator>(const MarchDecorator& lhs, const MarchDecorator& rhs)
+    {
+        return std::tie(lhs.m_MarchTicks, lhs.m_MarchCount) > std::tie(rhs.m_MarchTicks, rhs.m_MarchCount);
     }
 };
 
@@ -41,7 +61,7 @@ GameMap::GameMap(const MapPoint& map_size, const Key<GameMapFactory>&)
 
 GameMap::~GameMap()
 {
-    m_Work.reset();
+    m_Work.reset(); // todo need transfer this to processing finish event?
     m_GameThread.join();
 }
 
@@ -54,6 +74,7 @@ std::pair<bool, std::string> GameMap::AddCreature(std::shared_ptr<CreatureBase>&
 {
     using namespace std::string_literals;
 
+    std::lock_guard guard(m_CreaturesLocker);
     if (m_Creatures.find(creature->GetId()) != m_Creatures.end())
     {
         return {false, "Creature with id "s + boost::lexical_cast<std::string>(creature->GetId()) + " already exists"};
@@ -72,29 +93,71 @@ void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
 
     static size_t march_count = 0;
 
-    if (!Include(event->GetMarchDestination()))
+    if (!Include(event->GetDestination()))
     {
         throw std::logic_error("March coordinates are out of map size");
     }
 
-    auto creature = m_Creatures.find(event->GetCreatureId());
-    if (creature == m_Creatures.end())
+    decltype(m_Creatures.get<IdTag>().begin()) assaulter;
+    {
+        std::lock_guard guard(m_CreaturesLocker);
+        assaulter = m_Creatures.find(event->GetCreatureId());
+    }
+    if (assaulter == m_Creatures.end())
     {
         throw std::logic_error("Trying launch a march with non-existent creature with id "s + boost::lexical_cast<std::string>(event->GetCreatureId()));
     }
 
-    m_PendingMarches.emplace((*creature)->GetPosition().LengthTo(event->GetMarchDestination()), event->GetMarchDestination(), march_count++);
+    {
+        std::lock_guard guard(m_MarchLocker);
+        m_PendingMarches.emplace(march_count++, (*assaulter)->GetPosition(), *event);
+    }
     event->PrintMessage(event->GetFiringMessage());
 
     boost::asio::post(
         m_GameContext,
-        [map = shared_from_this(), creature = *creature]()
+        [this, assaulter]() // todo shared_from_this ??
         {
-            auto active_march = map->m_PendingMarches.top();
-            map->m_PendingMarches.pop();
-            if (auto enemy = map->m_Creatures.get<PositionTag>().find(active_march.GetDestination()); enemy != map->m_Creatures.get<PositionTag>().end())
+            MarchDecorator<MarchEvent> active_march;
             {
-                bool was_win = (*enemy)->Battle(creature);
+                std::lock_guard guard(m_MarchLocker);
+                active_march = m_PendingMarches.top();
+                m_PendingMarches.pop();
             }
+
+            {
+                std::lock_guard guard(m_CreaturesLocker);
+                if (auto defender = m_Creatures.get<PositionTag>().find(active_march.GetDestination()); defender != m_Creatures.get<PositionTag>().end())
+                {
+                    active_march.SetBattle((*defender)->Battle(*assaulter));
+                    ProcessBattleInfo(*active_march.GetBattleInfo(), assaulter, defender);
+                }
+                else
+                {
+                    m_Creatures.get<PositionTag>().modify(
+                        m_Creatures.project<PositionTag>(assaulter),
+                        [&active_march](std::shared_ptr<CreatureBase>& modified) { modified->SetPosition(active_march.GetDestination()); });
+                }
+            }
+            active_march.PrintMessage(active_march.GetFinishingMessage());
         });
+}
+
+void GameMap::ProcessBattleInfo(const BattleInfo& battle,
+                                creature_container::index<IdTag>::type::iterator assaulter,
+                                creature_container::index<PositionTag>::type::iterator defender)
+{
+    if (!battle.GetWinner())
+    {
+        m_Creatures.erase(assaulter);
+        m_Creatures.get<PositionTag>().erase(defender);
+    }
+    else if (*battle.GetWinner() == (*assaulter)->GetId())
+    {
+        m_Creatures.get<PositionTag>().erase(defender);
+    }
+    else
+    {
+        m_Creatures.erase(assaulter);
+    }
 }
