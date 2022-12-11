@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-EventBus::EventBus(std::unique_ptr<IPrinter> printer_impl)
+EventBus::EventBus(std::shared_ptr <IPrinter> printer_impl)
     : m_GameTicks(0.0)
     , m_Suspend(false)
     , m_InfoPrinter(std::move(printer_impl))
@@ -45,12 +45,13 @@ EventBus::~EventBus()
 
 void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 {
+    event->SetPrintingCallback(
+        [/*ptr->*/ /*ptr = shared_from_this()*/ this](auto&& message) // todo shared_from_this ??
+        {
+            return m_InfoPrinter->SafetyPrint(m_GameTicks, std::forward<decltype(message)>(message));
+        });
     {
         std::lock_guard guard(m_Locker);
-        event->SetPrintingCallback([this](auto&& message) // todo shared_from_this ??
-            {
-                return m_InfoPrinter->SafetyPrint(m_GameTicks, std::forward<decltype(message)>(message));
-            });
         m_EventStorage.push(std::move(event));
     }
     m_NewEvent.notify_one();
@@ -58,7 +59,7 @@ void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 
 void EventBus::ProcessEvent(std::shared_ptr<WaitEvent> event)
 {
-    std::cout << "Wait\n";
+//    std::cout << "Wait\n";
     for (double g = m_GameTicks; !m_GameTicks.compare_exchange_strong(g, g + 1.0);) {}
     //    m_GameTicks += event->GetTicks();
 }

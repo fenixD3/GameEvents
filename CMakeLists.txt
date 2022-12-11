@@ -2,6 +2,23 @@ cmake_minimum_required(VERSION 3.20)
 project(scorewarrior_test)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+option(SANITIZER_ANALYSIS "Sanitizers analysis" OFF)
+
+if (SANITIZER_ANALYSIS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+        -O0 \
+        -g \
+        -fsanitize=address \
+    ")
+endif()
+
+#-fsanitize=address \
+#-fsanitize=leak \
+#-fsanitize=thread \
+#-fsanitize=undefined \
+#-fsanitize=memory
 
 find_package(Boost)
 if (${Boost_FOUND})

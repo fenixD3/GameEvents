@@ -20,6 +20,9 @@ bool StdOutPrinter::SafetyPrint(double game_ticks, std::string message) const
         stream << '[' << game_ticks << "] " << message << "\n";
 
         std::cout << stream.str();
+//        {
+//            std::lock_guard guard(m_Locker);
+//        }
     }
     return true;
 }

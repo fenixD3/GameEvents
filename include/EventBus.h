@@ -34,7 +34,7 @@ private:
 //    class EventDispatcher; // TODO add it later
 
 public:
-    explicit EventBus(std::unique_ptr<IPrinter> printer_impl);
+    explicit EventBus(std::shared_ptr <IPrinter> printer_impl);
     ~EventBus();
 
     template <typename TEvent, typename TSubscriber> // TODO add enable_if

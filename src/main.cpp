@@ -16,9 +16,8 @@ int main(int ac, char **av)
         std::exit(EXIT_FAILURE);
     }
 
-    using namespace std::chrono_literals;
     std::shared_ptr<GameMap> map;
-    std::shared_ptr<EventBus> bus = std::make_shared<EventBus>(std::make_unique<StdOutPrinter>());
+    std::shared_ptr<EventBus> bus = std::make_shared<EventBus>(std::make_shared<StdOutPrinter>());
 
     bus->Subscribe<MapCreationEvent>(
         [&map, &bus](auto&& event) // todo check about references in capture list
@@ -54,4 +53,32 @@ int main(int ac, char **av)
     {
         std::cerr << ex.what() << std::endl;
     }
+
+    // todo test producer
+//    std::vector<std::shared_ptr<EventBase>> events = {
+//        std::make_shared<MapCreationEvent>(MapPoint(40, 40)),
+//        std::make_shared<SpawnCreatureEvent>(1, MapPoint(40, 40), 50),
+//        std::make_shared<SpawnCreatureEvent>(2, MapPoint(30, 40), 100),
+//        std::make_shared<SpawnCreatureEvent>(3, MapPoint(10, 20), 70),
+//        std::make_shared<SpawnCreatureEvent>(4, MapPoint(40, 30), 90),
+//        std::make_shared<MarchEvent>(1, MapPoint(40, 30)),
+//        std::make_shared<MarchEvent>(2, MapPoint(20, 20)),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<WaitEvent>(1),
+//        std::make_shared<MarchEvent>(4, MapPoint(20, 20)),
+//        std::make_shared<FinishEvent>(),
+//    };
+//
+//    for (auto& ev : events)
+//    {
+//        bus->AddEvent(std::move(ev));
+//    }
 }
