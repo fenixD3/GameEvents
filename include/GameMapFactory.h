@@ -12,5 +12,5 @@ private:
     static inline std::weak_ptr<GameMap> Map;
 
 public:
-    std::shared_ptr<GameMap> CreateMap(std::shared_ptr<MapCreationEvent> event);
+    static std::shared_ptr<GameMap> CreateMap(std::shared_ptr<MapCreationEvent> event);
 };

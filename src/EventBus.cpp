@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-EventBus::EventBus(std::shared_ptr <IPrinter> printer_impl)
-    : m_GameTicks(0.0)
-    , m_Suspend(false)
-    , m_InfoPrinter(std::move(printer_impl))
+EventBus::EventBus()
+    : m_Suspend(false)
 {
+    //logging::INFO("EventBus");
     m_Worker = std::thread([this] () /// Firing event
     {
+        //logging::INFO("Worker of EventBus start");
         while (true)
         {
             std::shared_ptr<EventBase> event;
@@ -17,6 +17,7 @@ EventBus::EventBus(std::shared_ptr <IPrinter> printer_impl)
                 m_NewEvent.wait(guard, [this]{ return m_Suspend || !m_EventStorage.empty(); });
                 if (m_Suspend && m_EventStorage.empty())
                 {
+                    //logging::INFO("EventBus child Thread finish");
                     break;
                 }
 
@@ -27,6 +28,7 @@ EventBus::EventBus(std::shared_ptr <IPrinter> printer_impl)
             auto raw_event = event.get();
             try
             {
+                //logging::INFO("Emit signal in EventBus worker " + boost::lexical_cast<std::string>(typeid(*raw_event).name()) + ". Slot count is " + boost::lexical_cast<std::string>(m_Subscribers[typeid(*raw_event)].num_slots()));
                 m_Subscribers[typeid(*raw_event)](event);
             }
             catch (std::exception& ex)
@@ -40,16 +42,14 @@ EventBus::EventBus(std::shared_ptr <IPrinter> printer_impl)
 
 EventBus::~EventBus()
 {
+    //logging::INFO("~EventBus");
     m_Worker.join();
+    //logging::INFO("~EventBus destroyed");
 }
 
 void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
 {
-    event->SetPrintingCallback(
-        [/*ptr->*/ /*ptr = shared_from_this()*/ this](auto&& message) // todo shared_from_this ??
-        {
-            return m_InfoPrinter->SafetyPrint(m_GameTicks, std::forward<decltype(message)>(message));
-        });
+    //logging::INFO("AddEvent");
     {
         std::lock_guard guard(m_Locker);
         m_EventStorage.push(std::move(event));
@@ -57,15 +57,18 @@ void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
     m_NewEvent.notify_one();
 }
 
-void EventBus::ProcessEvent(std::shared_ptr<WaitEvent> event)
+void EventBus::ProcessEvent([[maybe_unused]] std::shared_ptr<WaitEvent> event)
 {
+    //logging::INFO("WaitEvent handler");
+
 //    std::cout << "Wait\n";
-    for (double g = m_GameTicks; !m_GameTicks.compare_exchange_strong(g, g + 1.0);) {}
+//    for (double g = m_GameTicks; !m_GameTicks.compare_exchange_strong(g, g + 1.0);) {}
     //    m_GameTicks += event->GetTicks();
 }
 
-void EventBus::ProcessEvent(std::shared_ptr<FinishEvent> event)
+void EventBus::ProcessEvent([[maybe_unused]] std::shared_ptr<FinishEvent> event)
 {
+    //logging::INFO("FinishEvent handler");
     {
         std::lock_guard guard(m_Locker);
         m_Suspend = true;

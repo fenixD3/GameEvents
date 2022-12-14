@@ -7,5 +7,5 @@ class SpawnCreatureEvent;
 class CreatureFactory
 {
 public:
-    void CreateCreature(std::shared_ptr<SpawnCreatureEvent> event);
+    static void CreateCreature(std::shared_ptr<SpawnCreatureEvent> event);
 };

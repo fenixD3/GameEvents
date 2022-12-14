@@ -50,19 +50,25 @@ public:
 };
 
 GameMap::GameMap(const MapPoint& map_size, const Key<GameMapFactory>&)
-    : m_MapSize(map_size)
+    : m_GameTicks(0.0)
     , m_Work(std::make_unique<dummy_game_work_type>(m_GameContext.get_executor()))
+    , m_MapSize(map_size)
 {
+    //logging::INFO("GameMap");
     m_GameThread = std::thread([this] ()
     {
+        //logging::INFO("Game Thread start");
         m_GameContext.run();
+        //logging::INFO("Game child Thread finish");
     });
 }
 
 GameMap::~GameMap()
 {
+    //logging::INFO("~GameMap");
     m_Work.reset(); // todo need transfer this to processing finish event?
     m_GameThread.join();
+    //logging::INFO("~GameMap destroyed");
 }
 
 bool GameMap::Include(const MapPoint& point) const
@@ -89,6 +95,7 @@ std::pair<bool, std::string> GameMap::AddCreature(std::shared_ptr<CreatureBase>&
 
 void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
 {
+    //logging::INFO("MarchEvent handler");
     using namespace std::string_literals;
 
     static size_t march_count = 0;
@@ -112,12 +119,18 @@ void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
         std::lock_guard guard(m_MarchLocker);
         m_PendingMarches.emplace(march_count++, (*assaulter)->GetPosition(), *event);
     }
-    event->PrintMessage(event->GetFiringMessage());
+    event->PrintMessage(0, event->GetFiringMessage());
 
+    //logging::INFO("Post March to game");
     boost::asio::post(
         m_GameContext,
         [this, assaulter]() // todo shared_from_this ??
         {
+            // todo need for emulating destroyed event bus before processing all events into game map worker
+/*            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(3s);*/
+
+            //logging::INFO("March processing. Game is " + boost::lexical_cast<std::string>(this));
             MarchDecorator<MarchEvent> active_march;
             {
                 std::lock_guard guard(m_MarchLocker);
@@ -139,7 +152,7 @@ void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
                         [&active_march](std::shared_ptr<CreatureBase>& modified) { modified->SetPosition(active_march.GetDestination()); });
                 }
             }
-            active_march.PrintMessage(active_march.GetFinishingMessage());
+            active_march.PrintMessage(0, active_march.GetFinishingMessage());
         });
 }
 

@@ -1,9 +1,11 @@
 #pragma once
 
+#include "MapPoint.h"
+#include "logging.h"
+
 #include <memory>
 #include <optional>
 
-#include "MapPoint.h"
 
 class Warrior;
 

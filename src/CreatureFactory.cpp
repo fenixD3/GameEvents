@@ -11,6 +11,7 @@ void CreatureFactory::CreateCreature(std::shared_ptr<SpawnCreatureEvent> event)
     }
     else
     {
+        //logging::INFO("Creates creature. Map is " + boost::lexical_cast<std::string>(map));
         if (!map->Include(event->GetCoordinates()))
         {
             throw std::logic_error("Creature coordinates are out of map size");
@@ -20,6 +21,6 @@ void CreatureFactory::CreateCreature(std::shared_ptr<SpawnCreatureEvent> event)
         {
             throw std::logic_error(error);
         }
-        event->PrintMessage(event->GetFinishingMessage());
+        event->PrintMessage(0, event->GetFinishingMessage());
     }
 }

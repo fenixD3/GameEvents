@@ -51,6 +51,8 @@ private:
     class MarchDecorator;
 
 private:
+    std::atomic<double> m_GameTicks;
+
     game_context_type m_GameContext;
     std::unique_ptr<dummy_game_work_type> m_Work;
     std::thread m_GameThread;

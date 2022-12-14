@@ -3,8 +3,7 @@
 
 std::shared_ptr<GameMap> GameMapFactory::CreateMap(std::shared_ptr<MapCreationEvent> event)
 {
-    auto instance = Map.lock();
-    if (!instance)
+    if (auto instance = Map.lock(); !instance)
     {
         if (event->GetMapSize().GetXCoord() <= 0 || event->GetMapSize().GetYCoord() <= 0)
         {
@@ -13,7 +12,7 @@ std::shared_ptr<GameMap> GameMapFactory::CreateMap(std::shared_ptr<MapCreationEv
 
         instance = std::make_shared<GameMap>(event->GetMapSize(), Key<GameMapFactory>{});
         Map = instance;
-        event->PrintMessage(event->GetFinishingMessage());
+        event->PrintMessage(0, event->GetFinishingMessage());
         return instance;
     }
     throw std::logic_error("The second trying to construct game map");

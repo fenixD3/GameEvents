@@ -5,6 +5,11 @@
 
 class IPrinter
 {
+    friend class PrinterFactory;
+    struct PrinterTag { virtual ~PrinterTag() = default; };
+public:
+    struct StdOutTag : PrinterTag {};
+
 public:
     virtual ~IPrinter() = default;
 
