@@ -28,7 +28,3 @@ void EventProducer::Run(const std::function<void(std::shared_ptr<EventBase>&&)>&
         std::exit(EXIT_FAILURE);
     }
 }
-
-//void EventProducer::DispatchEvent(const std::shared_ptr<IEvent>& event) const
-//{
-//}

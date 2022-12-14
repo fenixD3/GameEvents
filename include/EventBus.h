@@ -12,7 +12,6 @@
 
 #include <thread>
 #include <condition_variable>
-#include <atomic>
 
 class EventBus : public std::enable_shared_from_this<EventBus>
 {
@@ -73,6 +72,5 @@ public:
     }
 
     void AddEvent(std::shared_ptr<EventBase>&& event);
-    void ProcessEvent(std::shared_ptr<WaitEvent> event);
     void ProcessEvent(std::shared_ptr<FinishEvent> event);
 };

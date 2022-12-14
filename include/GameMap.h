@@ -4,14 +4,13 @@
 #include "events/SpawnCreature.h"
 #include "events/March.h"
 #include "events/Wait.h"
+#include "events/Finish.h"
 #include "base_interfaces/CreatureBase.h"
 
 #include <memory>
 #include <thread>
 #include <queue>
 #include <mutex>
-
-#include <iostream>
 
 #include <boost/asio/io_context.hpp>
 #include <boost/multi_index_container.hpp>
@@ -51,13 +50,15 @@ private:
     class MarchDecorator;
 
 private:
+    MapPoint m_MapSize;
     std::atomic<double> m_GameTicks;
 
-    game_context_type m_GameContext;
-    std::unique_ptr<dummy_game_work_type> m_Work;
+//    game_context_type m_GameContext;
+//    std::unique_ptr<dummy_game_work_type> m_Work;
     std::thread m_GameThread;
+    std::condition_variable m_MarchProcessing;
+    bool m_Suspend;
 
-    MapPoint m_MapSize;
     std::mutex m_CreaturesLocker;
     creature_container m_Creatures;
 
@@ -71,9 +72,13 @@ public:
     bool Include(const MapPoint& point) const;
     std::pair<bool, std::string> AddCreature(std::shared_ptr<CreatureBase>&& creature);
     void ProcessEvent(std::shared_ptr<MarchEvent> event);
+    void ProcessEvent(std::shared_ptr<WaitEvent> event);
+    void ProcessEvent(std::shared_ptr<FinishEvent> event);
+    double GetGameTicks() const;
 
 private:
     void ProcessBattleInfo(const BattleInfo& battle,
                            creature_container::index<IdTag>::type::iterator assaulter,
                            creature_container::index<PositionTag>::type::iterator defender);
+    double AddTicks(double ticks);
 };

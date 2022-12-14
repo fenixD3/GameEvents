@@ -12,7 +12,7 @@ std::shared_ptr<GameMap> GameMapFactory::CreateMap(std::shared_ptr<MapCreationEv
 
         instance = std::make_shared<GameMap>(event->GetMapSize(), Key<GameMapFactory>{});
         Map = instance;
-        event->PrintMessage(0, event->GetFinishingMessage());
+        event->PrintMessage(instance->GetGameTicks(), event->GetFinishingMessage());
         return instance;
     }
     throw std::logic_error("The second trying to construct game map");

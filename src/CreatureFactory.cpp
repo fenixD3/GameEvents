@@ -21,6 +21,6 @@ void CreatureFactory::CreateCreature(std::shared_ptr<SpawnCreatureEvent> event)
         {
             throw std::logic_error(error);
         }
-        event->PrintMessage(0, event->GetFinishingMessage());
+        event->PrintMessage(map->GetGameTicks(), event->GetFinishingMessage());
     }
 }

@@ -6,7 +6,7 @@ EventBus::EventBus()
     : m_Suspend(false)
 {
     //logging::INFO("EventBus");
-    m_Worker = std::thread([this] () /// Firing event
+    m_Worker = std::thread([this]() /// Firing event
     {
         //logging::INFO("Worker of EventBus start");
         while (true)
@@ -55,15 +55,6 @@ void EventBus::AddEvent(std::shared_ptr<EventBase>&& event)
         m_EventStorage.push(std::move(event));
     }
     m_NewEvent.notify_one();
-}
-
-void EventBus::ProcessEvent([[maybe_unused]] std::shared_ptr<WaitEvent> event)
-{
-    //logging::INFO("WaitEvent handler");
-
-//    std::cout << "Wait\n";
-//    for (double g = m_GameTicks; !m_GameTicks.compare_exchange_strong(g, g + 1.0);) {}
-    //    m_GameTicks += event->GetTicks();
 }
 
 void EventBus::ProcessEvent([[maybe_unused]] std::shared_ptr<FinishEvent> event)

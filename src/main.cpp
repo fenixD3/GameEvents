@@ -33,12 +33,14 @@ int main(int ac, [[maybe_unused]] char **av)
     //logging::INFO("Map and Bus were defined. Map is " + boost::lexical_cast<std::string>(map) + " doesn't initialize. Bus is " + boost::lexical_cast<std::string>(bus));
 
     bus->Subscribe<MapCreationEvent>(
-        [&map, &bus](auto&& event) // todo check about references in capture list
+        [&map, &bus](auto&& event)
         {
             //logging::INFO("MapCreationEvent handler. ");
             map = GameMapFactory::CreateMap(std::forward<decltype(event)>(event));
             //logging::INFO("Map created, map is " + boost::lexical_cast<std::string>(map));
             bus->Subscribe<MarchEvent>(map); // todo think about replace this to Game Map Factory
+            bus->Subscribe<WaitEvent>(map);
+            bus->Subscribe<FinishEvent>(map);
         });
     bus->Subscribe<SpawnCreatureEvent>(
         [](auto&& event)
@@ -46,13 +48,6 @@ int main(int ac, [[maybe_unused]] char **av)
             //logging::INFO("SpawnCreatureEvent handler");
             CreatureFactory::CreateCreature(std::forward<decltype(event)>(event));
         });
-//    bus->Subscribe<WaitEvent>(bus); // todo it doesn't work too
-//    bus->Subscribe<WaitEvent>( // todo why it doesn't work subscription to self slot??
-//        [bus](auto&& event)
-//        {
-//            bus->ProcessEvent(std::forward<decltype(event)>(event));
-//        });
-//    bus->SubscribeSelf<WaitEvent>(); // todo it works without shared_from_this!
     bus->SubscribeSelf<FinishEvent>();
 //    bus->Subscribe<FinishEvent>(bus);
 

@@ -78,6 +78,7 @@ EventFactory::return_event_chunk EventFactory::CreateEvent(const std::vector<std
                             wait_chunk.emplace_back(std::make_shared<WaitEvent>(1.));
                         }
                         return wait_chunk;
+//                        return { std::make_shared<WaitEvent>(boost::lexical_cast<double>(event_tokens[1])) };
                     }
                     catch (std::exception& ex)
                     {
