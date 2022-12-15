@@ -71,14 +71,14 @@ EventFactory::return_event_chunk EventFactory::CreateEvent(const std::vector<std
                 {
                     try
                     {
-                        int wait_count = boost::lexical_cast<int>(event_tokens[1]);
-                        return_event_chunk wait_chunk;
-                        while (wait_count--)
-                        {
-                            wait_chunk.emplace_back(std::make_shared<WaitEvent>(1.));
-                        }
-                        return wait_chunk;
-//                        return { std::make_shared<WaitEvent>(boost::lexical_cast<double>(event_tokens[1])) };
+//                        int wait_count = boost::lexical_cast<int>(event_tokens[1]);
+//                        return_event_chunk wait_chunk;
+//                        while (wait_count--)
+//                        {
+//                            wait_chunk.emplace_back(std::make_shared<WaitEvent>(1.));
+//                        }
+//                        return wait_chunk;
+                        return { std::make_shared<WaitEvent>(boost::lexical_cast<double>(event_tokens[1])) };
                     }
                     catch (std::exception& ex)
                     {

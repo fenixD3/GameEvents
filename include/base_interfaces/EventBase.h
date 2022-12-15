@@ -17,7 +17,6 @@ public:
     explicit EventBase(std::function<bool(double, std::string)>&& print_callback =
         [](double game_ticks, auto&& message)
         {
-            //logging::INFO("Print message: " + message + ". Printer is " + boost::lexical_cast<std::string>(m_InfoPrinter) + ". Event bus is " + boost::lexical_cast<std::string>(this));
             return PrinterFactory::GetPrinter()->SafetyPrint(game_ticks, std::forward<decltype(message)>(message));
         });
 

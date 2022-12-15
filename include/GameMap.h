@@ -27,6 +27,7 @@ private:
 };
 
 class GameMapFactory;
+class EventBus;
 
 namespace bmi = boost::multi_index;
 
@@ -51,19 +52,21 @@ private:
 
 private:
     MapPoint m_MapSize;
-    std::atomic<double> m_GameTicks;
+    double m_GameTicks;
 
-//    game_context_type m_GameContext;
-//    std::unique_ptr<dummy_game_work_type> m_Work;
+    game_context_type m_GameContext;
+    std::unique_ptr<dummy_game_work_type> m_Work;
     std::thread m_GameThread;
-    std::condition_variable m_MarchProcessing;
-    bool m_Suspend;
+//    std::condition_variable m_MarchProcessing;
+//    bool m_Suspend;
 
     std::mutex m_CreaturesLocker;
     creature_container m_Creatures;
 
     std::mutex m_MarchLocker;
     std::priority_queue<MarchDecorator<MarchEvent>, std::vector<MarchDecorator<MarchEvent>>, std::greater<>> m_PendingMarches;
+
+    std::weak_ptr<EventBus> m_EventBus;
 
 public:
     explicit GameMap(const MapPoint& map_size, const Key<GameMapFactory>&);
@@ -76,9 +79,13 @@ public:
     void ProcessEvent(std::shared_ptr<FinishEvent> event);
     double GetGameTicks() const;
 
+    void SetEventBus(std::weak_ptr<EventBus> bus);
+    game_context_type& GetGameContext();
+
 private:
     void ProcessBattleInfo(const BattleInfo& battle,
                            creature_container::index<IdTag>::type::iterator assaulter,
                            creature_container::index<PositionTag>::type::iterator defender);
-    double AddTicks(double ticks);
+//    double AddTicks(double ticks);
+    double ProcessMarches();
 };
