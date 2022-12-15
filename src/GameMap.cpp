@@ -6,74 +6,15 @@
 #include <condition_variable>
 #include <utility>
 
-template <typename TEvent>
-class GameMap::MarchDecorator : public TEvent
-{
-private:
-    double m_MarchTicks;
-    std::optional<BattleInfo> m_Battle;
-
-    size_t m_MarchCount;
-
-public:
-    MarchDecorator() = default;
-
-    template <typename... TArgs>
-    MarchDecorator(size_t count, const MapPoint& creature_position, TArgs&&... args)
-        : TEvent(std::forward<TArgs>(args)...)
-        , m_MarchCount(count)
-    {
-        m_MarchTicks = creature_position.LengthTo(GetDestination());
-    }
-
-    MapPoint GetDestination() const
-    {
-        return TEvent::GetDestination();
-    }
-
-    std::string GetFinishingMessage() const override
-    {
-        return TEvent::GetFinishingMessage() + ' ' + boost::lexical_cast<std::string>(m_Battle);
-    }
-
-    void SetBattle(const BattleInfo& battle)
-    {
-        m_Battle = battle;
-    }
-
-    const std::optional<BattleInfo>& GetBattleInfo() const
-    {
-        return m_Battle;
-    }
-
-    double GetMarchTime() const
-    {
-        return m_MarchTicks;
-    }
-
-    friend bool operator>(const MarchDecorator& lhs, const MarchDecorator& rhs)
-    {
-        return std::tie(lhs.m_MarchTicks, lhs.m_MarchCount) > std::tie(rhs.m_MarchTicks, rhs.m_MarchCount);
-    }
-};
-
 GameMap::GameMap(const MapPoint& map_size, const Key<GameMapFactory>&)
     : m_MapSize(map_size)
     , m_GameTicks(0.0)
     , m_Work(std::make_unique<dummy_game_work_type>(m_GameContext.get_executor()))
 {
-    //logging::INFO("GameMap");
     m_GameThread = std::thread([this]()
     {
-        //logging::INFO("Game Thread start");
         m_GameContext.run();
-        //logging::INFO("Game child Thread finish");
     });
-}
-
-GameMap::~GameMap()
-{
-    //logging::INFO("~GameMap");
 }
 
 bool GameMap::Include(const MapPoint& point) const
@@ -99,7 +40,6 @@ std::pair<bool, std::string> GameMap::AddCreature(std::shared_ptr<CreatureBase>&
 
 void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
 {
-    //logging::INFO("MarchEvent handler GameMap");
     using namespace std::string_literals;
 
     static size_t march_count = 0;
@@ -120,14 +60,12 @@ void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
 
 void GameMap::ProcessEvent(std::shared_ptr<WaitEvent> event)
 {
-    //logging::INFO("WaitEvent handler GameMap");
     double current_march_time = ProcessMarches();
     if (std::isgreater(event->GetTicks(), current_march_time))
     {
         m_GameTicks += event->GetTicks() - current_march_time;
     }
 
-    //logging::INFO("Post WaitEvent finish to EventBus");
     if (auto bus = m_EventBus.lock(); bus)
     {
         boost::asio::post(
@@ -145,12 +83,10 @@ void GameMap::ProcessEvent(std::shared_ptr<WaitEvent> event)
 
 void GameMap::ProcessEvent([[maybe_unused]] std::shared_ptr<FinishEvent> event)
 {
-    //logging::INFO("Pot FinishEvent handler to GameMap");
     boost::asio::post(
         m_GameContext,
         [this, event]()
         {
-            //logging::INFO("FinishEvent handler GameMap");
             ProcessMarches();
             event->PrintMessage(m_GameTicks, event->GetFinishingMessage());
             m_Work.reset();
@@ -174,7 +110,6 @@ GameMap::game_context_type& GameMap::GetGameContext()
 
 void GameMap::Join()
 {
-    //logging::INFO("Join GameMap");
     m_GameThread.join();
 }
 
@@ -200,7 +135,6 @@ void GameMap::ProcessBattleInfo(const BattleInfo& battle,
 double GameMap::ProcessMarches()
 {
     std::vector<MarchDecorator<MarchEvent>> active_marches;
-    //logging::INFO("March to process " + boost::lexical_cast<std::string>(m_PendingMarches.size()));
     while (!m_PendingMarches.empty())
     {
         auto march = m_PendingMarches.top();

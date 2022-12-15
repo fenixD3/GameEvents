@@ -3,8 +3,6 @@
 #include "MapPoint.h"
 #include "PrinterFactory.h"
 
-#include "logging.h"
-
 #include <string>
 #include <functional>
 

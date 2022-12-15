@@ -31,7 +31,7 @@ class EventBus;
 
 namespace bmi = boost::multi_index;
 
-class GameMap : public std::enable_shared_from_this<GameMap>
+class GameMap
 {
 private:
     using game_context_type = boost::asio::io_context;
@@ -48,7 +48,55 @@ private:
     >;
 
     template <typename TEvent>
-    class MarchDecorator;
+    class MarchDecorator : public TEvent
+    {
+    private:
+        double m_MarchTicks;
+        std::optional<BattleInfo> m_Battle;
+
+        size_t m_MarchCount;
+
+    public:
+        MarchDecorator() = default;
+
+        template <typename... TArgs>
+        MarchDecorator(size_t count, const MapPoint& creature_position, TArgs&&... args)
+                : TEvent(std::forward<TArgs>(args)...)
+                , m_MarchCount(count)
+        {
+            m_MarchTicks = creature_position.LengthTo(GetDestination());
+        }
+
+        MapPoint GetDestination() const
+        {
+            return TEvent::GetDestination();
+        }
+
+        std::string GetFinishingMessage() const override
+        {
+            return TEvent::GetFinishingMessage() + ' ' + boost::lexical_cast<std::string>(m_Battle);
+        }
+
+        void SetBattle(const BattleInfo& battle)
+        {
+            m_Battle = battle;
+        }
+
+        const std::optional<BattleInfo>& GetBattleInfo() const
+        {
+            return m_Battle;
+        }
+
+        double GetMarchTime() const
+        {
+            return m_MarchTicks;
+        }
+
+        friend bool operator>(const MarchDecorator& lhs, const MarchDecorator& rhs)
+        {
+            return std::tie(lhs.m_MarchTicks, lhs.m_MarchCount) > std::tie(rhs.m_MarchTicks, rhs.m_MarchCount);
+        }
+    };
 
 private:
     MapPoint m_MapSize;
@@ -66,7 +114,6 @@ private:
 
 public:
     explicit GameMap(const MapPoint& map_size, const Key<GameMapFactory>&);
-    ~GameMap();
 
     bool Include(const MapPoint& point) const;
     std::pair<bool, std::string> AddCreature(std::shared_ptr<CreatureBase>&& creature);

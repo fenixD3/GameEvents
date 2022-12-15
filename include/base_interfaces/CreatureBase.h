@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MapPoint.h"
-#include "logging.h"
 
 #include <memory>
 #include <optional>
