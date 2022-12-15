@@ -57,13 +57,9 @@ private:
     game_context_type m_GameContext;
     std::unique_ptr<dummy_game_work_type> m_Work;
     std::thread m_GameThread;
-//    std::condition_variable m_MarchProcessing;
-//    bool m_Suspend;
 
-    std::mutex m_CreaturesLocker;
     creature_container m_Creatures;
 
-    std::mutex m_MarchLocker;
     std::priority_queue<MarchDecorator<MarchEvent>, std::vector<MarchDecorator<MarchEvent>>, std::greater<>> m_PendingMarches;
 
     std::weak_ptr<EventBus> m_EventBus;
@@ -81,11 +77,11 @@ public:
 
     void SetEventBus(std::weak_ptr<EventBus> bus);
     game_context_type& GetGameContext();
+    void Join();
 
 private:
     void ProcessBattleInfo(const BattleInfo& battle,
                            creature_container::index<IdTag>::type::iterator assaulter,
                            creature_container::index<PositionTag>::type::iterator defender);
-//    double AddTicks(double ticks);
     double ProcessMarches();
 };

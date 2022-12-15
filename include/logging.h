@@ -269,7 +269,7 @@ void work() {
   for(size_t i  = 0; i < 10000; ++i) {
     logging::ERROR(id);
     logging::WARN(id);
-    //logging::INFO(id);
+    ////logging::INFO(id);
     logging::DEBUG(id);
     logging::TRACE(id);
   }

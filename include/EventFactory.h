@@ -37,7 +37,8 @@ public:
                                 MarchTag,
                                 WaitTag,
                                 FinishTag>;
-    using return_event_chunk = std::vector<std::shared_ptr<EventBase>>;
+
+    using return_event_type = std::shared_ptr<EventBase>;
 
     static inline const std::unordered_map<std::string_view, events> EventsTag = {
         { "CREATE_MAP", MapCreationTag{} },
@@ -50,5 +51,5 @@ public:
     static inline size_t ConstructedEvents = 0;
 
 public:
-    static return_event_chunk CreateEvent(const std::vector<std::string>& event_tokens);
+    static return_event_type CreateEvent(const std::vector<std::string>& event_tokens);
 };

@@ -14,12 +14,6 @@ private:
     std::function<bool(double, std::string)> m_PrintCallback;
 
 public:
-    explicit EventBase(std::function<bool(double, std::string)>&& print_callback =
-        [](double game_ticks, auto&& message)
-        {
-            return PrinterFactory::GetPrinter()->SafetyPrint(game_ticks, std::forward<decltype(message)>(message));
-        });
-
     virtual ~EventBase() = default;
     virtual std::string GetFiringMessage() const = 0;
     virtual std::string GetFinishingMessage() const = 0;

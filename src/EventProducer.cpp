@@ -14,13 +14,10 @@ void EventProducer::Run(const std::function<void(std::shared_ptr<EventBase>&&)>&
             command_tokens;
             command_tokens = m_EventExtractor->GetNextCommandTokens())
         {
-            auto events = EventFactory::CreateEvent(*command_tokens);
-            for (auto& event : events)
-            {
-                dispatch_callback(std::move(event));
-            }
+            auto event = EventFactory::CreateEvent(*command_tokens);
+            dispatch_callback(std::move(event));
         }
-        dispatch_callback(std::move(EventFactory::CreateEvent(IExtractor::FinishCommand).front()));
+        dispatch_callback(EventFactory::CreateEvent(IExtractor::FinishCommand));
     }
     catch (const std::invalid_argument& ex)
     {

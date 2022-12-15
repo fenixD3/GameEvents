@@ -44,40 +44,40 @@ public:
     template <typename TEvent, typename TSubscriber> // TODO add enable_if
     void Subscribe(const std::shared_ptr<TSubscriber>& subscriber)
     {
-        logging::INFO("Subscribe via 1st method on " + boost::lexical_cast<std::string>(typeid(TEvent).name()) + ". Subscriber is " + boost::lexical_cast<std::string>(subscriber));
+        //logging::INFO("Subscribe via 1st method on " + boost::lexical_cast<std::string>(typeid(TEvent).name()) + ". Subscriber is " + boost::lexical_cast<std::string>(subscriber));
         m_Subscribers[typeid(TEvent)].connect(
             [subscriber](std::shared_ptr<EventBase> event)
             {
-                logging::INFO("Call slot " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
+                //logging::INFO("Call slot " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
                 subscriber->ProcessEvent(std::static_pointer_cast<TEvent>(event));
             });
-        logging::INFO(". Resulting count of slots are " + boost::lexical_cast<std::string>(m_Subscribers[typeid(TEvent)].num_slots()));
+        //logging::INFO(". Resulting count of slots are " + boost::lexical_cast<std::string>(m_Subscribers[typeid(TEvent)].num_slots()));
     }
 
     template <typename TEvent, typename TFunc>
     void Subscribe(const TFunc& subscriber_callback)
     {
-        logging::INFO("Subscribe via 2nd method on " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
+        //logging::INFO("Subscribe via 2nd method on " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
         m_Subscribers[typeid(TEvent)].connect(
             [subscriber_callback](std::shared_ptr<EventBase> event)
             {
-                logging::INFO("Call slot " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
+                //logging::INFO("Call slot " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
                 subscriber_callback(std::static_pointer_cast<TEvent>(event));
             });
-        logging::INFO(". Resulting count of slots are " + boost::lexical_cast<std::string>(m_Subscribers[typeid(TEvent)].num_slots()));
+        //logging::INFO(". Resulting count of slots are " + boost::lexical_cast<std::string>(m_Subscribers[typeid(TEvent)].num_slots()));
     }
 
     template <typename TEvent>
     void SubscribeSelf()
     {
-        logging::INFO("Subscribe via 3d method on " + boost::lexical_cast<std::string>(typeid(TEvent).name()) + ". Subscriber is " + boost::lexical_cast<std::string>(this));
+        //logging::INFO("Subscribe via 3d method on " + boost::lexical_cast<std::string>(typeid(TEvent).name()) + ". Subscriber is " + boost::lexical_cast<std::string>(this));
         m_Subscribers[typeid(TEvent)].connect(
             [this](std::shared_ptr<EventBase> event)
             {
-                logging::INFO("Call slot " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
+                //logging::INFO("Call slot " + boost::lexical_cast<std::string>(typeid(TEvent).name()));
                 ProcessEvent(std::static_pointer_cast<TEvent>(event));
             });
-        logging::INFO(". Resulting count of slots are " + boost::lexical_cast<std::string>(m_Subscribers[typeid(TEvent)].num_slots()));
+        //logging::INFO(". Resulting count of slots are " + boost::lexical_cast<std::string>(m_Subscribers[typeid(TEvent)].num_slots()));
     }
 
     void AddEvent(std::shared_ptr<EventBase>&& event);
@@ -85,4 +85,7 @@ public:
     void ProcessEvent(std::shared_ptr<WaitEvent> event);
 
     void SetGameMap(std::weak_ptr<GameMap> map);
+    context_type& GetContext();
+    void Continue();
+    void Join();
 };

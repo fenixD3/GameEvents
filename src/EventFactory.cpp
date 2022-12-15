@@ -9,7 +9,7 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 
-EventFactory::return_event_chunk EventFactory::CreateEvent(const std::vector<std::string>& event_tokens)
+EventFactory::return_event_type EventFactory::CreateEvent(const std::vector<std::string>& event_tokens)
 {
     using namespace std::string_literals;
 
@@ -21,7 +21,7 @@ EventFactory::return_event_chunk EventFactory::CreateEvent(const std::vector<std
     else
     {
         auto event = std::visit(details::overloaded{
-            [&event_tokens](const EventFactory::MapCreationTag&) -> return_event_chunk
+            [&event_tokens](const EventFactory::MapCreationTag&) -> return_event_type
                 {
                     if (ConstructedEvents != 0)
                     {
@@ -30,66 +30,64 @@ EventFactory::return_event_chunk EventFactory::CreateEvent(const std::vector<std
 
                     try
                     {
-                        return { std::make_shared<MapCreationEvent>(MapPoint(
+                        return std::make_shared<MapCreationEvent>(MapPoint(
                             boost::lexical_cast<int>(event_tokens[1]),
-                            boost::lexical_cast<int>(event_tokens[2]))) };
+                            boost::lexical_cast<int>(event_tokens[2])));
                     }
                     catch (std::exception& ex)
                     {
                         throw std::invalid_argument("Invalid input for CREATE_MAP "s + ex.what());
                     }
                 },
-            [&event_tokens](const EventFactory::SpawnCreatureTag&) -> return_event_chunk
+            [&event_tokens](const EventFactory::SpawnCreatureTag&) -> return_event_type
                 {
                     try
                     {
-                        return { std::make_shared<SpawnCreatureEvent>(
+                        return std::make_shared<SpawnCreatureEvent>(
                             boost::lexical_cast<int>(event_tokens[1]),
                             MapPoint(boost::lexical_cast<int>(event_tokens[2]), boost::lexical_cast<int>(event_tokens[3])),
-                            boost::lexical_cast<int>(event_tokens[4]))} ;
+                            boost::lexical_cast<int>(event_tokens[4]));
                     }
                     catch (std::exception& ex)
                     {
                         throw std::invalid_argument("Invalid input for SPAWN "s + ex.what());
                     }
                 },
-            [&event_tokens](const EventFactory::MarchTag&) -> return_event_chunk
+            [&event_tokens](const EventFactory::MarchTag&) -> return_event_type
                 {
                     try
                     {
-                        return { std::make_shared<MarchEvent>(
+                        return std::make_shared<MarchEvent>(
                                 boost::lexical_cast<int>(event_tokens[1]),
                                 MapPoint(boost::lexical_cast<int>(event_tokens[2]),
-                                boost::lexical_cast<int>(event_tokens[3]))) };
+                                boost::lexical_cast<int>(event_tokens[3])));
                     }
                     catch (std::exception& ex)
                     {
                         throw std::invalid_argument("Invalid input for MARCH "s + ex.what());
                     }
                 },
-            [&event_tokens](const EventFactory::WaitTag&) -> return_event_chunk
+            [&event_tokens](const EventFactory::WaitTag&) -> return_event_type
                 {
                     try
                     {
-//                        int wait_count = boost::lexical_cast<int>(event_tokens[1]);
-//                        return_event_chunk wait_chunk;
-//                        while (wait_count--)
-//                        {
-//                            wait_chunk.emplace_back(std::make_shared<WaitEvent>(1.));
-//                        }
-//                        return wait_chunk;
-                        return { std::make_shared<WaitEvent>(boost::lexical_cast<double>(event_tokens[1])) };
+                        return std::make_shared<WaitEvent>(boost::lexical_cast<double>(event_tokens[1]));
                     }
                     catch (std::exception& ex)
                     {
-                        throw std::invalid_argument("Invalid input for SPAWN "s + ex.what());
+                        throw std::invalid_argument("Invalid input for Wait "s + ex.what());
                     }
                 },
-            [](const EventFactory::FinishTag&) -> return_event_chunk
+            [](const EventFactory::FinishTag&) -> return_event_type
             {
-                return { std::make_shared<FinishEvent>() };
+                return std::make_shared<FinishEvent>();
             }
         }, constructing->second);
+        event->SetPrintingCallback(
+            [](double game_ticks, auto&& message)
+            {
+                return PrinterFactory::GetPrinter()->SafetyPrint(game_ticks, std::forward<decltype(message)>(message));
+            });
 
         ++ConstructedEvents;
         return event;

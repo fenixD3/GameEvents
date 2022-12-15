@@ -60,23 +60,20 @@ public:
 GameMap::GameMap(const MapPoint& map_size, const Key<GameMapFactory>&)
     : m_MapSize(map_size)
     , m_GameTicks(0.0)
-//    , m_Suspend(false)
     , m_Work(std::make_unique<dummy_game_work_type>(m_GameContext.get_executor()))
 {
-    logging::INFO("GameMap");
+    //logging::INFO("GameMap");
     m_GameThread = std::thread([this]()
     {
-        logging::INFO("Game Thread start");
+        //logging::INFO("Game Thread start");
         m_GameContext.run();
-        logging::INFO("Game child Thread finish");
+        //logging::INFO("Game child Thread finish");
     });
 }
 
 GameMap::~GameMap()
 {
-    logging::INFO("~GameMap");
-    m_GameThread.join();
-    logging::INFO("~GameMap destroyed");
+    //logging::INFO("~GameMap");
 }
 
 bool GameMap::Include(const MapPoint& point) const
@@ -88,7 +85,6 @@ std::pair<bool, std::string> GameMap::AddCreature(std::shared_ptr<CreatureBase>&
 {
     using namespace std::string_literals;
 
-    std::lock_guard guard(m_CreaturesLocker);
     if (m_Creatures.find(creature->GetId()) != m_Creatures.end())
     {
         return {false, "Creature with id "s + boost::lexical_cast<std::string>(creature->GetId()) + " already exists"};
@@ -103,7 +99,7 @@ std::pair<bool, std::string> GameMap::AddCreature(std::shared_ptr<CreatureBase>&
 
 void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
 {
-    logging::INFO("MarchEvent handler GameMap");
+    //logging::INFO("MarchEvent handler GameMap");
     using namespace std::string_literals;
 
     static size_t march_count = 0;
@@ -113,47 +109,48 @@ void GameMap::ProcessEvent(std::shared_ptr<MarchEvent> event)
         throw std::logic_error("March coordinates are out of map size");
     }
 
-    decltype(m_Creatures.get<IdTag>().begin()) assaulter;
-    {
-        std::lock_guard guard(m_CreaturesLocker);
-        assaulter = m_Creatures.find(event->GetCreatureId());
-    }
+    auto assaulter = m_Creatures.find(event->GetCreatureId());
     if (assaulter == m_Creatures.end())
     {
         throw std::logic_error("Trying launch a march with non-existent creature with id "s + boost::lexical_cast<std::string>(event->GetCreatureId()));
     }
 
-    {
-        std::lock_guard guard(m_MarchLocker);
-        m_PendingMarches.emplace(march_count++, (*assaulter)->GetPosition(), *event);
-    }
+    m_PendingMarches.emplace(march_count++, (*assaulter)->GetPosition(), *event);
 }
 
 void GameMap::ProcessEvent(std::shared_ptr<WaitEvent> event)
 {
-    logging::INFO("Pot WaitEvent handler to GameMap");
-    boost::asio::post(
-        m_GameContext,
-        [this, event]()
-        {
-            logging::INFO("WaitEvent handler GameMap");
-            double current_march_time = ProcessMarches();
-            if (std::isgreater(event->GetTicks(), current_march_time))
+    //logging::INFO("WaitEvent handler GameMap");
+    double current_march_time = ProcessMarches();
+    if (std::isgreater(event->GetTicks(), current_march_time))
+    {
+        m_GameTicks += event->GetTicks() - current_march_time;
+    }
+
+    //logging::INFO("Post WaitEvent finish to EventBus");
+    if (auto bus = m_EventBus.lock(); bus)
+    {
+        boost::asio::post(
+            bus->GetContext(),
+            [bus, event = std::move(event)]()
             {
-                m_GameTicks += event->GetTicks() - current_march_time;
-//                AddTicks(event->GetTicks() - current_march_time);
-            }
-        });
+                bus->Continue();
+            });
+    }
+    else
+    {
+        throw std::runtime_error("Can't notify EventBus about finishing WaitEvent");
+    }
 }
 
 void GameMap::ProcessEvent([[maybe_unused]] std::shared_ptr<FinishEvent> event)
 {
-    logging::INFO("Pot FinishEvent handler to GameMap");
+    //logging::INFO("Pot FinishEvent handler to GameMap");
     boost::asio::post(
         m_GameContext,
         [this, event]()
         {
-            logging::INFO("FinishEvent handler GameMap");
+            //logging::INFO("FinishEvent handler GameMap");
             ProcessMarches();
             event->PrintMessage(m_GameTicks, event->GetFinishingMessage());
             m_Work.reset();
@@ -175,6 +172,12 @@ GameMap::game_context_type& GameMap::GetGameContext()
     return m_GameContext;
 }
 
+void GameMap::Join()
+{
+    //logging::INFO("Join GameMap");
+    m_GameThread.join();
+}
+
 void GameMap::ProcessBattleInfo(const BattleInfo& battle,
                                 creature_container::index<IdTag>::type::iterator assaulter,
                                 creature_container::index<PositionTag>::type::iterator defender)
@@ -194,58 +197,34 @@ void GameMap::ProcessBattleInfo(const BattleInfo& battle,
     }
 }
 
-//double GameMap::AddTicks(double ticks)
-//{
-//    double current_tick = m_GameTicks;
-//    while (!m_GameTicks.compare_exchange_strong(current_tick, current_tick + ticks)) {} // todo change to weak variant
-//    return current_tick + ticks;
-//}
-
 double GameMap::ProcessMarches()
 {
-    auto extract_active_marches = [](auto& pending_marches, auto& inserter, double started_ticks)
-    {
-        while (!pending_marches.empty())
-        {
-            auto march = pending_marches.top();
-            march.PrintMessage(started_ticks, march.GetFiringMessage());
-            inserter.push_back(march);
-            pending_marches.pop();
-        }
-    };
-
     std::vector<MarchDecorator<MarchEvent>> active_marches;
+    //logging::INFO("March to process " + boost::lexical_cast<std::string>(m_PendingMarches.size()));
+    while (!m_PendingMarches.empty())
     {
-        std::lock_guard guard(m_MarchLocker);
-        logging::INFO("March to process " + boost::lexical_cast<std::string>(m_PendingMarches.size()));
-        while (!m_PendingMarches.empty())
-        {
-            auto march = m_PendingMarches.top();
-            march.PrintMessage(m_GameTicks, march.GetFiringMessage());
-            active_marches.push_back(march);
-            m_PendingMarches.pop();
-        }
-//        extract_active_marches(m_PendingMarches, active_marches, m_GameTicks);
+        auto march = m_PendingMarches.top();
+        march.PrintMessage(m_GameTicks, march.GetFiringMessage());
+        active_marches.push_back(march);
+        m_PendingMarches.pop();
     }
 
     double current_march_time = 0;
     for (auto& march : active_marches)
     {
+        auto assaulter = m_Creatures.find(march.GetCreatureId());
+        if (auto defender = m_Creatures.get<PositionTag>().find(march.GetDestination()); defender != m_Creatures.get<PositionTag>().end())
         {
-            std::lock_guard guard(m_CreaturesLocker);
-            auto assaulter = m_Creatures.find(march.GetCreatureId());
-            if (auto defender = m_Creatures.get<PositionTag>().find(march.GetDestination()); defender != m_Creatures.get<PositionTag>().end())
-            {
-                march.SetBattle((*defender)->Battle(*assaulter));
-                ProcessBattleInfo(*march.GetBattleInfo(), assaulter, defender);
-            }
-            else
-            {
-                m_Creatures.get<PositionTag>().modify(
-                        m_Creatures.project<PositionTag>(assaulter),
-                        [&march](std::shared_ptr<CreatureBase>& modified) { modified->SetPosition(march.GetDestination()); });
-            }
+            march.SetBattle((*defender)->Battle(*assaulter));
+            ProcessBattleInfo(*march.GetBattleInfo(), assaulter, defender);
         }
+        else
+        {
+            m_Creatures.get<PositionTag>().modify(
+                m_Creatures.project<PositionTag>(assaulter),
+                [&march](std::shared_ptr<CreatureBase>& modified) { modified->SetPosition(march.GetDestination()); });
+        }
+
         m_GameTicks += march.GetMarchTime() - current_march_time;
         march.PrintMessage(m_GameTicks, march.GetFinishingMessage());
         current_march_time += march.GetMarchTime() - current_march_time;
